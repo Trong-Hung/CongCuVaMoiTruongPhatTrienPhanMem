@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Chi tiết Công việc - HUTECH</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-primary px-4 mb-4">
+    <a class="navbar-brand fw-bold" th:href="@{/tasks/board}">HUTECH WORKFLOW</a>
+    <div class="text-white d-flex align-items-center">
+        <a th:href="@{/tasks/board}" class="btn btn-outline-light btn-sm me-3">Về Board</a>
+    </div>
+</nav>
+
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-primary" th:text="${task.id == null ? 'Tạo công việc mới' : 'Chi tiết & Cập nhật công việc'}"></h5>
+                    <span class="badge bg-secondary" th:if="${task.id != null}" th:text="'Task ID: #' + ${task.id}"></span>
+                </div>
+
+                <div class="card-body p-4">
+                    <form th:action="@{/tasks/save}" method="post" th:object="${task}">
+                        <input type="hidden" th:field="*{id}" />
+
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Tên công việc <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-lg" th:field="*{title}" required placeholder="Nhập tiêu đề công việc...">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Trạng thái</label>
+                                <select class="form-select form-select-lg fw-bold" th:field="*{status}">
+                                    <option value="TODO" class="text-secondary">CẦN LÀM</option>
+                                    <option value="IN_PROGRESS" class="text-primary">ĐANG LÀM</option>
+                                    <option value="PENDING_REVIEW" class="text-warning">CHỜ DUYỆT</option>
+                                    <option value="SUCCESS" class="text-success">HOÀN THÀNH</option>
+                                    <option value="FAILED" class="text-danger">THẤT BẠI</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Mô tả chi tiết</label>
+                            <textarea class="form-control" th:field="*{description}" rows="6" placeholder="Nhập thông tin chi tiết, yêu cầu..."></textarea>
+                        </div>
+
+                        <div class="row border-top pt-4 mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase"><i class="bi bi-person-workspace me-1"></i> Người thực (Assignee)</label>
+                                <select name="assigneeId" class="form-select">
+                                    <option value="">-- Chưa gán người làm --</option>
+                                    <option th:each="emp : ${employees}"
+                                            th:value="${emp.id}"
+                                            th:text="${emp.fullName} + ' (' + ${emp.position} + ')'"
+                                            th:selected="${task.assignee != null and task.assignee.id == emp.id}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-muted small text-uppercase"><i class="bi bi-eye me-1"></i> Người theo dõi (Chọn nhiều)</label>
+                                <select name="followerIds" class="form-select" multiple size="4">
+                                    <option th:each="emp : ${employees}"
+                                            th:value="${emp.id}"
+                                            th:text="${emp.fullName} + ' (' + ${emp.position} + ')'"
+                                            th:selected="${task.followers != null and task.followers.contains(emp)}">
+                                    </option>
+                                </select>
+                                <div class="form-text text-primary small mt-1"><i class="bi bi-info-circle"></i> Giữ phím Ctrl (hoặc Cmd) để chọn nhiều người</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4 w-50">
+                            <label class="form-label fw-bold text-muted small text-uppercase"><i class="bi bi-calendar-event me-1"></i> Hạn chót (Deadline)</label>
+                            <input type="datetime-local" class="form-control" th:field="*{deadline}">
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3 mt-5">
+                            <a th:href="@{/tasks/board}" class="btn btn-light border px-4">Hủy / Quay lại</a>
+                            <button type="submit" class="btn btn-primary px-4"><i class="bi bi-floppy me-2"></i>Lưu công việc</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

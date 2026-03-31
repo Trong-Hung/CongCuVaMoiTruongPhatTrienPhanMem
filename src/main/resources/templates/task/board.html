@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Board Công việc - HUTECH</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .kanban-column { background: #ebedf0; border-radius: 10px; width: 300px; min-height: 80vh; padding: 10px; flex-shrink: 0; }
+        .task-card { background: white; border-radius: 5px; padding: 15px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative;}
+        .edit-btn { position: absolute; top: 10px; right: 10px; color: #6c757d; cursor: pointer; text-decoration: none; }
+        .edit-btn:hover { color: #0d6efd; }
+        .employee-link { text-decoration: none; color: #0d6efd; font-weight: 500; }
+        .employee-link:hover { text-decoration: underline; color: #0a58ca; }
+        .task-title-link { text-decoration: none; display: block; margin-bottom: 8px; transition: color 0.2s; }
+        .task-title-link:hover { color: #0d6efd !important; text-decoration: underline; }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-primary px-4 mb-4">
+    <a class="navbar-brand fw-bold" href="#">HUTECH WORKFLOW</a>
+    <div class="text-white d-flex align-items-center">
+
+        <span class="me-3" th:if="${user.company != null}" th:text="'🏢 ' + ${user.company.name}"></span>
+        <a sec:authorize="hasAuthority('ADMIN')" th:href="@{/admin/users}" class="btn btn-outline-light btn-sm">Quản lý nhân sự</a>
+        <form th:action="@{/logout}" method="post" class="d-inline ms-2 mb-0">
+            <button class="btn btn-danger btn-sm" type="submit">Thoát</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container-fluid d-flex gap-3 overflow-auto px-4">
+
+    <div class="kanban-column">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold opacity-75 mb-0">CẦN LÀM</h6>
+            <a th:href="@{/tasks/create}" class="btn btn-sm btn-primary">+ Mới</a>
+        </div>
+        <div th:each="t : ${todo}" class="task-card">
+            <a th:href="@{/tasks/edit/{id}(id=${t.id})}" class="edit-btn"><i class="bi bi-pencil-square"></i></a>
+            <a th:href="@{/tasks/detail/{id}(id=${t.id})}" class="fw-bold pe-4 text-dark task-title-link" th:text="${t.title}"></a>
+            <div class="small text-muted mt-2" th:if="${t.assignee != null}">
+                <i class="bi bi-person-fill"></i> Giao cho:
+                <a th:href="@{/users/detail/{id}(id=${t.assignee.id})}" th:text="${t.assignee.fullName}" class="employee-link"></a>
+            </div>
+            <div class="small text-muted" th:if="${t.followers != null and !t.followers.isEmpty()}">
+                <i class="bi bi-eye-fill"></i> Theo dõi:
+                <span th:each="f, stat : ${t.followers}">
+                    <a th:href="@{/users/detail/{id}(id=${f.id})}" th:text="${f.fullName}" class="employee-link"></a><span th:if="${!stat.last}">, </span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="kanban-column">
+        <h6 class="fw-bold text-primary mb-3">ĐANG LÀM</h6>
+        <div th:each="t : ${inProgress}" class="task-card border-primary">
+            <a th:href="@{/tasks/edit/{id}(id=${t.id})}" class="edit-btn"><i class="bi bi-pencil-square"></i></a>
+            <a th:href="@{/tasks/detail/{id}(id=${t.id})}" class="fw-bold pe-4 text-dark task-title-link" th:text="${t.title}"></a>
+            <div class="small text-muted mt-2" th:if="${t.assignee != null}">
+                <i class="bi bi-person-fill"></i>
+                <a th:href="@{/users/detail/{id}(id=${t.assignee.id})}" th:text="${t.assignee.fullName}" class="employee-link"></a>
+            </div>
+            <a th:href="@{/tasks/submit/{id}(id=${t.id})}" class="btn btn-sm btn-outline-primary w-100 mt-3">Xong, gửi duyệt</a>
+        </div>
+    </div>
+
+    <div class="kanban-column" style="background: #fff3cd;">
+        <h6 class="fw-bold text-warning mb-3">ĐANG XEM XÉT</h6>
+        <div th:each="t : ${pendingReview}" class="task-card border-warning">
+            <a th:href="@{/tasks/edit/{id}(id=${t.id})}" class="edit-btn"><i class="bi bi-pencil-square"></i></a>
+            <a th:href="@{/tasks/detail/{id}(id=${t.id})}" class="fw-bold pe-4 text-dark task-title-link" th:text="${t.title}"></a>
+            <div class="small text-muted mt-2" th:if="${t.assignee != null}">
+                <i class="bi bi-person-fill"></i>
+                <a th:href="@{/users/detail/{id}(id=${t.assignee.id})}" th:text="${t.assignee.fullName}" class="employee-link"></a>
+            </div>
+            <div sec:authorize="hasAuthority('ADMIN')" class="mt-3 d-flex gap-2">
+                <a th:href="@{/tasks/review/{id}(id=${t.id}, isPassed=true)}" class="btn btn-sm btn-success w-50">Đạt</a>
+                <a th:href="@{/tasks/review/{id}(id=${t.id}, isPassed=false)}" class="btn btn-sm btn-danger w-50">Lại</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="kanban-column" style="background: #d1e7dd;">
+        <h6 class="fw-bold text-success mb-3">HOÀN THÀNH</h6>
+        <div th:each="t : ${success}" class="task-card border-success">
+            <a th:href="@{/tasks/detail/{id}(id=${t.id})}" class="fw-bold text-success task-title-link" th:text="${t.title}"></a>
+            <div class="small text-muted mt-2" th:if="${t.assignee != null}">
+                <i class="bi bi-person-check-fill"></i>
+                <a th:href="@{/users/detail/{id}(id=${t.assignee.id})}" th:text="${t.assignee.fullName}" class="employee-link"></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="kanban-column" style="background: #f8d7da;">
+        <h6 class="fw-bold text-danger mb-3">THẤT BẠI</h6>
+        <div th:each="t : ${failed}" class="task-card border-danger">
+            <a th:href="@{/tasks/edit/{id}(id=${t.id})}" class="edit-btn"><i class="bi bi-pencil-square"></i></a>
+            <a th:href="@{/tasks/detail/{id}(id=${t.id})}" class="fw-bold text-danger pe-4 task-title-link" th:text="${t.title}"></a>
+            <div class="small text-muted mt-2" th:if="${t.assignee != null}">
+                <i class="bi bi-person-x-fill"></i>
+                <a th:href="@{/users/detail/{id}(id=${t.assignee.id})}" th:text="${t.assignee.fullName}" class="employee-link"></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
