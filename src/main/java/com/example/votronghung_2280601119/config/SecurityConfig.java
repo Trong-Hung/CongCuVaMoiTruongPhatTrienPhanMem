@@ -21,8 +21,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                // Trong file SecurityConfig.java, phần authorizeHttpRequests:
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/register", "/css/**", "/js/**", "/uploads/**", "/ws/**").permitAll()
+                        .requestMatchers("/login", "/register", "/css/**", "/js/**", "/uploads/**", "/ws/**").permitAll() // Đảm bảo có /ws/**
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
