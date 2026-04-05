@@ -9,13 +9,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class AuthController {
-    @Autowired private UserService userService;
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/login")
-    public String login() { return "login"; }
+    public String login() {
+        return "login";
+    }
 
     @GetMapping("/register")
-    public String showRegister() { return "register"; }
+    public String showRegister() {
+        return "register";
+    }
 
     @PostMapping("/register")
     public String register(@RequestParam String email,
@@ -23,7 +28,9 @@ public class AuthController {
                            @RequestParam String fullName,
                            @RequestParam String companyName,
                            @RequestParam String address) {
-        userService.registerCompany(email, password, fullName, companyName, address);
+        // QUAN TRỌNG: Thứ tự truyền vào phải khớp với định nghĩa ở Service bên dưới
+        // Thứ tự: Tên công ty, Email, Mật khẩu, Họ tên, Địa chỉ
+        userService.registerCompany(companyName, email, password, fullName, address);
         return "redirect:/login?success";
     }
 }
