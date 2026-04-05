@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi"
+      class="light-style layout-menu-fixed"
+      dir="ltr"
+      data-theme="theme-default"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Sửa Thông Tin - HUDA.VN</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/fonts/boxicons.css}" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/css/core.css}" class="template-customizer-core-css" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/css/theme-default.css}" class="template-customizer-theme-css" />
+    <link rel="stylesheet" th:href="@{/assets/css/demo.css}" />
+
+    <script th:src="@{/assets/vendor/js/helpers.js}"></script>
+    <script th:src="@{/assets/js/config.js}"></script>
+</head>
+
+<body>
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+            <div class="app-brand demo">
+                <a th:href="@{/tasks/board}" class="app-brand-link">
+                    <span class="app-brand-text demo menu-text fw-bolder ms-2 text-uppercase" style="font-size: 1.2rem;">HUTECH WORKFLOW</span>
+                </a>
+            </div>
+            <div class="menu-inner-shadow"></div>
+            <ul class="menu-inner py-1 mt-3">
+                <li class="menu-item">
+                    <a th:href="@{/tasks/board}" class="menu-link"><i class="menu-icon tf-icons bx bx-kanban"></i><div data-i18n="Analytics">Bảng Công Việc</div></a>
+                </li>
+                <li class="menu-item">
+                    <a th:href="@{/tasks/create}" class="menu-link"><i class="menu-icon tf-icons bx bx-plus-circle"></i><div data-i18n="Layouts">Tạo công việc mới</div></a>
+                </li>
+                <li class="menu-header small text-uppercase"><span class="menu-header-text">QUẢN TRỊ</span></li>
+                <li class="menu-item active" sec:authorize="hasAuthority('ADMIN')">
+                    <a th:href="@{/admin/users}" class="menu-link"><i class="menu-icon tf-icons bx bx-group"></i><div data-i18n="Account Settings">Quản lý Nhân sự</div></a>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="layout-page">
+
+            <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+                <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                    <div class="navbar-nav align-items-center">
+                        <div class="nav-item d-flex align-items-center fw-bold text-primary">
+                            <i class='bx bx-buildings fs-4 me-2'></i> <span>Hệ Thống Quản Trị</span> <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">ADMIN</span>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-wrapper">
+                <div class="container-xxl flex-grow-1 container-p-y">
+                    <h4 class="fw-bold py-3 mb-4">
+                        <span class="text-muted fw-light">Quản trị / <a th:href="@{/admin/users}" class="text-muted">Nhân sự</a> /</span> Cập nhật
+                    </h4>
+
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="card mb-4 shadow-sm border-0">
+                                <h5 class="card-header border-bottom">Chỉnh sửa thông tin tài khoản</h5>
+
+                                <div class="card-body mt-4">
+                                    <form th:action="@{/admin/users/update}" method="post" th:object="${employee}">
+                                        <input type="hidden" th:field="*{id}" />
+                                        <input type="hidden" th:field="*{password}" />
+                                        <input type="hidden" th:field="*{avatar}" />
+
+                                        <div class="row mb-3">
+                                            <div class="col-md-3 d-flex align-items-center justify-content-center mb-3 mb-md-0">
+                                                <img th:src="*{avatar != null ? avatar : '/assets/img/avatars/5.png'}" class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover;" alt="Avatar">
+                                            </div>
+                                            <div class="col-md-9">
+                                                <label class="form-label fw-bold">Họ và tên</label>
+                                                <input type="text" class="form-control" th:field="*{fullName}" required placeholder="Nhập họ và tên..." />
+
+                                                <label class="form-label fw-bold mt-3">Email đăng nhập</label>
+                                                <input type="text" class="form-control text-muted" th:field="*{username}" readonly style="background-color: #f8f9fa; cursor: not-allowed;" />
+                                                <div class="form-text text-info"><i class="bx bx-info-circle"></i> Email không thể thay đổi do liên kết với Google.</div>
+                                            </div>
+                                        </div>
+
+                                        <hr class="my-4">
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-bold">Chức vụ / Vị trí</label>
+                                                <div class="input-group input-group-merge">
+                                                    <span class="input-group-text"><i class="bx bx-briefcase"></i></span>
+                                                    <input type="text" class="form-control" th:field="*{position}" placeholder="VD: Developer, HR, BA..." />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6 mb-4">
+                                                <label class="form-label fw-bold text-danger">Quyền hạn hệ thống</label>
+                                                <div class="input-group input-group-merge">
+                                                    <span class="input-group-text"><i class="bx bx-check-shield"></i></span>
+                                                    <select class="form-select fw-semibold" th:field="*{role}">
+                                                        <option value="USER">Nhân viên (USER)</option>
+                                                        <option value="ADMIN">Quản trị viên (ADMIN)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-end gap-3 mt-3">
+                                            <a th:href="@{/admin/users}" class="btn btn-outline-secondary px-4">Quay lại</a>
+                                            <button type="submit" class="btn btn-primary px-4"><i class="bx bx-save me-1"></i> Lưu thay đổi</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-backdrop fade"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/assets/vendor/libs/jquery/jquery.js}"></script>
+<script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
+</body>
+</html>

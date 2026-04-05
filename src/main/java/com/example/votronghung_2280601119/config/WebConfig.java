@@ -6,10 +6,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Chỉ định cho Spring biết: hễ thấy link /images/** thì tìm trong thư mục static/images/
-        registry.addResourceHandler("/images/**")
-                .addResourceLocations("classpath:/static/images/");
+        // Khai báo với Spring Boot:
+        // Nếu có ai truy cập vào đường dẫn có chữ /uploads/...
+        // thì hãy vào thư mục "uploads" trong thư mục gốc của project để lấy file ra!
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:uploads/");
     }
 }

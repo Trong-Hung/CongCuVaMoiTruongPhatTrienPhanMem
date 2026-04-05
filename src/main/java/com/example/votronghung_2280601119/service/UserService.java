@@ -29,6 +29,9 @@ public class UserService {
         // Thêm các trường khác nếu cần
         userRepo.save(existingUser);
     }
+    public void deleteUser(Long id) {
+        userRepo.deleteById(id);
+    }
     // Bổ sung hàm này vào UserService
     public void inviteEmployee(String email, String role, com.example.votronghung_2280601119.model.Company company) {
         // Kiểm tra xem user (email) đã tồn tại trong database chưa

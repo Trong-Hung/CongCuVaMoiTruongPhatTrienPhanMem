@@ -1,93 +1,150 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      class="light-style layout-menu-fixed"
+      dir="ltr"
+      data-theme="theme-default"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8">
-    <title>Quản lý nhân sự - HUTECH</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Quản lý Nhân sự - HUDA.VN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/fonts/boxicons.css}" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/css/core.css}" class="template-customizer-core-css" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/css/theme-default.css}" class="template-customizer-theme-css" />
+    <link rel="stylesheet" th:href="@{/assets/css/demo.css}" />
+    <script th:src="@{/assets/js/config.js}"></script>
 </head>
-<body class="bg-light">
 
-<nav class="navbar navbar-dark bg-primary mb-4 px-4 shadow">
-    <a class="navbar-brand fw-bold" th:href="@{/tasks/board}">
-        <i class="bi bi-arrow-left-circle me-2"></i>Quay lại Bảng công việc
-    </a>
-</nav>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
 
-<div class="container">
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold text-primary">
-                <i class="bi bi-people-fill me-2"></i>
-                Nhân sự của: <span th:text="${companyName}">Tên Công Ty</span>
-            </h5>
-            <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#inviteModal">
-                <i class="bi bi-person-plus-fill me-1"></i> + Mời Nhân Viên
-            </button>
-        </div>
-        <div class="card-body">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                <tr>
-                    <th>Họ Tên</th>
-                    <th>Email (Tài khoản)</th>
-                    <th>Chức vụ</th>
-                    <th>Thao tác</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="emp : ${employees}">
-                    <td class="fw-bold" th:text="${emp.fullName}">Họ tên</td>
-                    <td th:text="${emp.username}">email@gmail.com</td>
-                    <td>
-                        <span class="badge bg-info text-dark" th:text="${emp.position != null ? emp.position : 'Chưa cập nhật'}">Chức vụ</span>
-                    </td>
-                    <td>
-                        <a th:if="${emp.role != 'ADMIN'}"
-                           th:href="@{/admin/users/delete/{id}(id=${emp.id})}"
-                           class="btn btn-outline-danger btn-sm"
-                           onclick="return confirm('Xóa nhân viên này khỏi hệ thống?')">
-                            <i class="bi bi-trash"></i> Xóa
-                        </a>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="inviteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <form th:action="@{/admin/add-employee}" method="post" class="modal-content shadow-lg border-0">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title fw-bold">Mời thành viên mới</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+            <div class="app-brand demo">
+                <a th:href="@{/tasks/board}" class="app-brand-link">
+                    <span class="app-brand-text demo menu-text fw-bolder ms-2 text-uppercase" style="font-size: 1.2rem;">HUTECH WORKFLOW</span>
+                </a>
             </div>
-            <div class="modal-body p-4">
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Email nhân viên</label>
-                    <input type="email" name="email" class="form-control" placeholder="nhanvien@gmail.com" required>
-                    <div class="form-text">Nhân viên sẽ dùng email này để đăng nhập.</div>
+            <div class="menu-inner-shadow"></div>
+            <ul class="menu-inner py-1 mt-3">
+                <li class="menu-item">
+                    <a th:href="@{/tasks/board}" class="menu-link"><i class="menu-icon tf-icons bx bx-kanban"></i><div data-i18n="Analytics">Bảng Công Việc</div></a>
+                </li>
+                <li class="menu-item">
+                    <a th:href="@{/tasks/create}" class="menu-link"><i class="menu-icon tf-icons bx bx-plus-circle"></i><div data-i18n="Layouts">Tạo công việc mới</div></a>
+                </li>
+                <li class="menu-item">
+                    <a th:href="@{/chat}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-message-rounded-dots"></i>
+                        <div data-i18n="Chat">Tin nhắn (Huda Message)</div>
+                    </a>
+                </li>
+                <li class="menu-header small text-uppercase"><span class="menu-header-text">QUẢN TRỊ</span></li>
+                <li class="menu-item active" sec:authorize="hasAuthority('ADMIN')">
+                    <a th:href="@{/admin/users}" class="menu-link"><i class="menu-icon tf-icons bx bx-group"></i><div data-i18n="Account Settings">Quản lý Nhân sự</div></a>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="layout-page">
+
+            <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+                <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                    <div class="navbar-nav align-items-center">
+                        <div class="nav-item d-flex align-items-center fw-bold text-primary">
+                            <i class='bx bx-buildings fs-4 me-2'></i> <span>Hệ Thống Quản Trị</span> <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">ADMIN</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Họ và tên</label>
-                    <input type="text" name="fullName" class="form-control" placeholder="Nguyễn Văn A" required>
-                </div>
-                <div class="mb-3 text-center">
-                    <div class="alert alert-warning p-2 small">
-                        Mật khẩu mặc định là: <strong>123456</strong>
+            </nav>
+
+            <div class="content-wrapper">
+                <div class="container-xxl flex-grow-1 container-p-y">
+                    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Quản trị /</span> Danh sách Nhân sự</h4>
+
+                    <div th:if="${successMsg}" class="alert alert-success alert-dismissible fw-bold shadow-sm" role="alert">
+                        <i class="bx bx-check-circle me-2"></i> <span th:text="${successMsg}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fw-bold shadow-sm" role="alert">
+                        <i class="bx bx-error-circle me-2"></i> <span th:text="${errorMsg}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Nhân sự cùng Công ty</h5>
+                            <a th:href="@{/admin/users/create}" class="btn btn-primary">
+                                <i class="bx bx-user-plus me-1"></i> Thêm nhân viên
+                            </a>
+                        </div>
+
+                        <div class="table-responsive text-nowrap">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>Mã NV</th>
+                                    <th>Nhân viên</th>
+                                    <th>Email (Tài khoản)</th>
+                                    <th>Phòng ban / Chức vụ</th>
+                                    <th>Quyền</th>
+                                    <th>Hành động</th>
+                                </tr>
+                                </thead>
+                                <tbody class="table-border-bottom-0">
+                                <tr th:each="u : ${users}">
+                                    <td><span class="fw-bold" th:text="'#' + ${u.id}"></span></td>
+                                    <td>
+                                        <div class="d-flex justify-content-start align-items-center">
+                                            <div class="avatar avatar-sm me-3">
+                                                <img th:src="${u.avatar != null ? u.avatar : '/assets/img/avatars/5.png'}" alt="Avatar" class="rounded-circle" />
+                                            </div>
+                                            <div class="d-flex flex-column">
+                                                <a th:href="@{/users/detail/{id}(id=${u.id})}" class="text-body text-truncate fw-semibold" th:text="${u.fullName}"></a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td th:text="${u.username}"></td>
+                                    <td><i class="bx bx-briefcase text-info me-1"></i> <span th:text="${u.position}"></span></td>
+                                    <td><span class="badge" th:classappend="${u.role == 'ADMIN' ? 'bg-label-danger' : 'bg-label-success'}" th:text="${u.role}"></span></td>
+
+                                    <td>
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item" th:href="@{/admin/users/edit/{id}(id=${u.id})}">
+                                                    <i class="bx bx-edit-alt me-1"></i> Sửa
+                                                </a>
+                                                <a class="dropdown-item text-danger"
+                                                   th:href="@{/admin/users/delete/{id}(id=${u.id})}"
+                                                   onclick="return confirm('⚠️ CẢNH BÁO: Bạn có chắc chắn muốn xóa nhân viên này không? Mọi dữ liệu liên quan sẽ bị mất!');">
+                                                    <i class="bx bx-trash me-1"></i> Xóa nhân viên
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${users == null or users.isEmpty()}">
+                                    <td colspan="6" class="text-center text-muted py-4">Chưa có nhân sự nào trong Công ty của bạn.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="submit" class="btn btn-success px-4 fw-bold">Xác nhận mời</button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/assets/vendor/libs/jquery/jquery.js}"></script>
+<script th:src="@{/assets/vendor/libs/popper/popper.js}"></script>
+<script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
+<script th:src="@{/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js}"></script>
+<script th:src="@{/assets/vendor/js/menu.js}"></script>
+<script th:src="@{/assets/js/main.js}"></script>
 </body>
 </html>

@@ -3,16 +3,24 @@ package com.example.votronghung_2280601119.controller;
 import com.example.votronghung_2280601119.model.Task;
 import com.example.votronghung_2280601119.model.User;
 import com.example.votronghung_2280601119.model.Comment;
+import com.example.votronghung_2280601119.model.TaskAttachment;
 import com.example.votronghung_2280601119.repository.TaskRepository;
 import com.example.votronghung_2280601119.repository.UserRepository;
 import com.example.votronghung_2280601119.repository.CommentRepository;
+import com.example.votronghung_2280601119.repository.TaskAttachmentRepository;
 import com.example.votronghung_2280601119.service.TaskService;
 import com.example.votronghung_2280601119.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,18 +34,18 @@ public class TaskController {
     @Autowired private TaskRepository taskRepo;
     @Autowired private CommentRepository commentRepo;
 
+    // Đã thêm cái này để thao tác với File
+    @Autowired private TaskAttachmentRepository attachmentRepo;
+
     @GetMapping("/board")
     public String board(Model model, Principal principal) {
         User user = userRepo.findByUsername(principal.getName()).orElseThrow();
-
-        // Truyền thẳng Object User vào Service để nó tự phân xử quyền
         model.addAttribute("todo", taskService.getTasksForBoard(user, "TODO"));
         model.addAttribute("inProgress", taskService.getTasksForBoard(user, "IN_PROGRESS"));
         model.addAttribute("pendingReview", taskService.getTasksForBoard(user, "PENDING_REVIEW"));
         model.addAttribute("success", taskService.getTasksForBoard(user, "SUCCESS"));
         model.addAttribute("failed", taskService.getTasksForBoard(user, "FAILED"));
         model.addAttribute("user", user);
-
         return "task/board";
     }
 
@@ -57,7 +65,6 @@ public class TaskController {
         return "task/task-form";
     }
 
-    // Đã cập nhật tham số followerIds thành List<Long>
     @PostMapping("/save")
     public String saveTask(@ModelAttribute Task task,
                            @RequestParam(required = false) Long assigneeId,
@@ -108,5 +115,44 @@ public class TaskController {
     public String review(@PathVariable Long id, @RequestParam boolean isPassed) {
         taskService.reviewTask(id, isPassed);
         return "redirect:/tasks/board";
+    }
+
+    // ================= CÁC TÍNH NĂNG MỚI (LƯU KẾT QUẢ VÀ UPLOAD FILE) =================
+
+    @PostMapping("/update-result")
+    @ResponseBody
+    public String updateResult(@RequestParam Long taskId, @RequestParam String result) {
+        Task task = taskRepo.findById(taskId).orElseThrow();
+        task.setResult(result);
+        taskRepo.save(task);
+        return "OK";
+    }
+
+    @PostMapping("/upload-file")
+    @ResponseBody
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam("taskId") Long taskId) {
+        try {
+            // 1. Tạo thư mục lưu trữ (Thư mục uploads nằm ngang hàng với src)
+            String uploadDir = "uploads/";
+            File dir = new File(uploadDir);
+            if (!dir.exists()) dir.mkdirs();
+
+            // 2. Viết file vào ổ cứng máy tính
+            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+            Path path = Paths.get(uploadDir + fileName);
+            Files.write(path, file.getBytes());
+
+            // 3. Lưu thông tin File vào Database
+            Task task = taskRepo.findById(taskId).orElseThrow();
+            TaskAttachment attachment = new TaskAttachment();
+            attachment.setFileName(file.getOriginalFilename());
+            attachment.setFileUrl("/" + uploadDir + fileName);
+            attachment.setTask(task);
+            attachmentRepo.save(attachment);
+
+            return ResponseEntity.ok("Thành công");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Lỗi upload: " + e.getMessage());
+        }
     }
 }

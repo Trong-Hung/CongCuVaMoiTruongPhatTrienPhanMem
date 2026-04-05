@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="vi"
+      class="light-style layout-menu-fixed"
+      dir="ltr"
+      data-theme="theme-default"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Huda Message - Giao tiếp nội bộ</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/fonts/boxicons.css}" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/css/core.css}" class="template-customizer-core-css" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/css/theme-default.css}" class="template-customizer-theme-css" />
+    <link rel="stylesheet" th:href="@{/assets/css/demo.css}" />
+
+    <style>
+        .chat-history { height: 60vh; overflow-y: auto; background-color: #f5f5f9; padding: 20px; border-radius: 8px; }
+        .message-box { position: relative; max-width: 70%; padding: 10px 15px; border-radius: 15px; margin-bottom: 15px; display: inline-block; word-wrap: break-word; }
+        .message-left { background-color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border-top-left-radius: 0; float: left; clear: both;}
+        .message-right { background-color: #696cff; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border-top-right-radius: 0; float: right; clear: both;}
+        .message-sender { font-size: 0.75rem; font-weight: bold; margin-bottom: 4px; display: block; }
+        .message-left .message-sender { color: #566a7f; }
+        .message-right .message-sender { color: #e1e4fb; }
+
+        .chat-list-item { cursor: pointer; transition: background-color 0.2s; position: relative; }
+        .chat-list-item:hover { background-color: #f8f9fa; }
+        .chat-list-item.active { background-color: #e8eaf6; border-left: 4px solid #696cff; }
+
+        /* CSS Của CHẤM ĐỎ VÀ MENU 3 CHẤM */
+        .unread-badge { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: #ff3e1d; color: white; font-size: 0.7rem; font-weight: bold; padding: 3px 7px; border-radius: 50%; display: none;}
+        .msg-actions { cursor: pointer; opacity: 0.6; margin-left: 10px; font-size: 1.2rem; }
+        .msg-actions:hover { opacity: 1; }
+        .message-right .msg-actions { color: white; }
+    </style>
+    <script th:src="@{/assets/vendor/js/helpers.js}"></script>
+    <script th:src="@{/assets/js/config.js}"></script>
+</head>
+
+<body th:data-user-id="${user.id}" th:data-user-name="${user.fullName}">
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+            <div class="app-brand demo">
+                <a th:href="@{/tasks/board}" class="app-brand-link">
+                    <span class="app-brand-text demo menu-text fw-bolder ms-2 text-uppercase" style="font-size: 1.2rem;">HUDA.VN</span>
+                </a>
+            </div>
+            <div class="menu-inner-shadow"></div>
+            <ul class="menu-inner py-1 mt-3">
+                <li class="menu-item"><a th:href="@{/tasks/board}" class="menu-link"><i class="menu-icon tf-icons bx bx-kanban"></i><div data-i18n="Analytics">Bảng Công Việc</div></a></li>
+                <li class="menu-item active"><a th:href="@{/chat}" class="menu-link"><i class="menu-icon tf-icons bx bx-message-rounded-dots"></i><div data-i18n="Chat">Tin nhắn (Huda Message)</div></a></li>
+                <li class="menu-item"><a th:href="@{/tasks/create}" class="menu-link"><i class="menu-icon tf-icons bx bx-plus-circle"></i><div data-i18n="Layouts">Tạo công việc mới</div></a></li>
+            </ul>
+        </aside>
+
+        <div class="layout-page">
+            <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+                <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                    <div class="navbar-nav align-items-center">
+                        <div class="nav-item d-flex align-items-center fw-bold text-primary">
+                            <i class='bx bx-message-rounded-dots fs-4 me-2'></i> <span>HUDA MESSAGE</span>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-wrapper">
+                <div class="container-xxl flex-grow-1 container-p-y">
+                    <div class="row h-100">
+
+                        <div class="col-md-3 col-lg-3 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center border-bottom pb-2">
+                                    <h6 class="mb-0 fw-bold">Gần đây</h6>
+                                    <i class='bx bx-plus-circle cursor-pointer text-primary fs-4' data-bs-toggle="modal" data-bs-target="#createGroupModal" title="Tạo nhóm mới"></i>
+                                </div>
+                                <div class="card-body p-0" style="overflow-y: auto; max-height: 60vh;">
+                                    <ul class="list-unstyled mb-0" id="recentChatsList"></ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header border-bottom py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar avatar-sm me-3"><span class="avatar-initial rounded-circle bg-success" id="chatHeaderAvatar">CH</span></div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold" id="chatHeaderName">Kênh Chung Công Ty</h6>
+                                            <small class="text-muted" id="chatHeaderDesc"><i class='bx bxs-user'></i> Nhóm công khai</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-body chat-history" id="chatArea"></div>
+
+                                <div class="card-footer border-top pt-3 pb-3">
+                                    <div class="input-group input-group-merge">
+                                        <span class="input-group-text cursor-pointer"><i class="bx bx-paperclip"></i></span>
+                                        <input type="text" id="messageInput" class="form-control" placeholder="Gõ và nhấn Enter để gửi..." autocomplete="off">
+                                        <button class="btn btn-primary" onclick="sendMessage()"><i class="bx bx-send"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-3 col-lg-3 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header border-bottom pb-2"><h6 class="mb-0 fw-bold">Danh bạ nhân viên</h6></div>
+                                <div class="card-body p-0" style="overflow-y: auto; max-height: 60vh;">
+                                    <ul class="list-unstyled mb-0">
+                                        <li class="p-3 border-bottom chat-list-item"
+                                            th:each="c : ${colleagues}" th:if="${c.id != user.id}"
+                                            th:data-id="${c.id}" th:data-name="${c.fullName}"
+                                            onclick="openPrivateChat(this.getAttribute('data-id'), this.getAttribute('data-name'))">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar avatar-sm me-3">
+                                                    <img th:src="${c.avatar != null ? c.avatar : '/assets/img/avatars/1.png'}" class="rounded-circle" />
+                                                </div>
+                                                <div class="d-flex flex-column">
+                                                    <span class="fw-bold fs-6 text-primary" th:text="${c.fullName}"></span>
+                                                    <small class="text-muted" th:text="${c.position != null ? c.position : 'Nhân viên'}"></small>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createGroupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-primary"><i class='bx bxs-group'></i> Tạo Nhóm Chat Mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tên nhóm</label>
+                    <input type="text" id="groupNameInput" class="form-control" placeholder="VD: Team Marketing...">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Chọn thành viên</label>
+                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #d9dee3; padding: 10px; border-radius: 5px;">
+                        <div class="form-check mb-2" th:each="c : ${colleagues}" th:if="${c.id != user.id}">
+                            <input class="form-check-input group-member-checkbox" type="checkbox" th:value="${c.id}" th:id="'check_' + ${c.id}">
+                            <label class="form-check-label" th:for="'check_' + ${c.id}">
+                                <b th:text="${c.fullName}"></b>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="submitCreateGroup()">Xác nhận tạo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/assets/vendor/libs/jquery/jquery.js}"></script>
+<script th:src="@{/assets/vendor/libs/popper/popper.js}"></script>
+<script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
+<script th:src="@{/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js}"></script>
+<script th:src="@{/assets/vendor/js/menu.js}"></script>
+<script th:src="@{/assets/js/main.js}"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+<script th:inline="javascript">
+    var stompClient = null;
+    var currentUserId = document.body.getAttribute('data-user-id');
+    var currentUserName = document.body.getAttribute('data-user-name');
+    var currentRoomId = 1;
+
+    // TỪ ĐIỂN LƯU SỐ TIN NHẮN CHƯA ĐỌC VÀ CÁC ỐNG NGHE
+    var unreadCounts = {};
+    var roomSubscriptions = {};
+
+    function connect() {
+        var socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+        stompClient.connect({}, function () {
+            console.log('Đã kết nối Radar Tổng!');
+            loadRecentChats(); // Bắt đầu quét và cắm ống nghe toàn bộ các nhóm
+        });
+    }
+
+    // TẢI DANH SÁCH & HIỂN THỊ CHẤM ĐỎ
+    function loadRecentChats() {
+        fetch('/api/chat/my-rooms?userId=' + currentUserId)
+            .then(res => res.json())
+            .then(rooms => {
+                var list = document.getElementById('recentChatsList');
+                list.innerHTML = '';
+
+                rooms.forEach(room => {
+                    // Nếu là nhóm mới, CẮM ỐNG NGHE NGAY LẬP TỨC để chực chờ tin nhắn
+                    if (!roomSubscriptions[room.id] && stompClient) {
+                        roomSubscriptions[room.id] = stompClient.subscribe('/topic/room/' + room.id, function (msgOutput) {
+                            var message = JSON.parse(msgOutput.body);
+
+                            // NẾU TIN NHẮN THUỘC PHÒNG ĐANG MỞ -> VẼ RA MÀN HÌNH
+                            if (room.id == currentRoomId) {
+                                showIncomingMessage(message);
+                            }
+                            // NẾU TIN NHẮN Ở PHÒNG KHÁC VÀ KHÔNG PHẢI MÌNH GỬI -> TĂNG CHẤM ĐỎ
+                            else if (message.sender.id != currentUserId) {
+                                unreadCounts[room.id] = (unreadCounts[room.id] || 0) + 1;
+                            }
+
+                            // Cập nhật lại danh sách bên trái để phòng tự nhảy lên trên cùng
+                            loadRecentChats();
+                        });
+                    }
+
+                    var avatarChar = room.name.charAt(0).toUpperCase();
+                    var activeClass = (room.id == currentRoomId) ? 'active' : '';
+                    // KIỂM TRA CHẤM ĐỎ
+                    var unreadNum = unreadCounts[room.id] || 0;
+                    var badgeStyle = (unreadNum > 0 && room.id != currentRoomId) ? "display: inline-block;" : "display: none;";
+
+                    var li = document.createElement('li');
+                    li.className = `p-3 border-bottom chat-list-item ${activeClass}`;
+                    li.onclick = function() { openRoom(room.id, room.name, room.isGroup); };
+
+                    li.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <div class="avatar avatar-sm me-3 flex-shrink-0">
+                                <span class="avatar-initial rounded-circle ${room.isGroup ? 'bg-success':'bg-primary'}">${avatarChar}</span>
+                            </div>
+                            <div class="d-flex flex-column w-100 overflow-hidden">
+                                <h6 class="mb-0 fw-bold text-truncate">${room.name}</h6>
+                                <small class="text-muted text-truncate"><i class='bx ${room.isGroup ? 'bxs-group':'bxs-lock-alt'}'></i> ${room.isGroup ? 'Nhóm' : 'Riêng tư'}</small>
+                            </div>
+                            <span class="unread-badge" style="${badgeStyle}">${unreadNum}</span>
+                        </div>
+                    `;
+                    list.appendChild(li);
+                });
+            });
+    }
+
+    // MỞ PHÒNG (Xóa chấm đỏ)
+    function openRoom(roomId, roomName, isGroup) {
+        currentRoomId = roomId;
+        unreadCounts[roomId] = 0; // Xóa chấm đỏ khi click vào
+
+        document.getElementById('chatHeaderName').innerText = roomName;
+        document.getElementById('chatHeaderDesc').innerHTML = isGroup ? "<i class='bx bxs-group text-primary'></i> Nhóm nội bộ" : "<i class='bx bxs-lock-alt text-warning'></i> Trò chuyện riêng tư";
+        document.getElementById('chatHeaderAvatar').innerText = roomName.charAt(0).toUpperCase();
+
+        loadChatHistory();
+        loadRecentChats();
+    }
+
+    function openPrivateChat(targetUserId, targetUserName) {
+        fetch(`/api/chat/get-or-create-room?user1Id=${currentUserId}&user2Id=${targetUserId}`)
+            .then(res => res.text())
+            .then(roomId => { openRoom(roomId, targetUserName, false); });
+    }
+
+    // GỬI TIN NHẮN
+    function sendMessage() {
+        var messageInput = document.getElementById('messageInput');
+        var messageContent = messageInput.value.trim();
+        if(messageContent && stompClient) {
+            var chatMessage = {
+                content: messageContent,
+                room: { id: currentRoomId },
+                sender: { id: currentUserId, fullName: currentUserName }
+            };
+            stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
+            messageInput.value = '';
+        }
+    }
+    document.getElementById('messageInput').addEventListener('keypress', function (e) { if (e.key === 'Enter') sendMessage(); });
+
+    // VẼ TIN NHẮN VÀ MENU 3 CHẤM
+    function showIncomingMessage(message) {
+        var chatArea = document.getElementById('chatArea');
+        var isMyMessage = (message.sender.id == currentUserId);
+
+        var messageElement = document.createElement('div');
+        messageElement.classList.add('message-box');
+        messageElement.classList.add(isMyMessage ? 'message-right' : 'message-left');
+
+        // Nếu tin nhắn đã bị thu hồi
+        if(message.isDeleted) {
+            messageElement.innerHTML = `
+                <span class="message-sender">${isMyMessage ? 'Tôi' : message.sender.fullName}</span>
+                <span class="text-white-50" style="font-style: italic;">🚫 Tin nhắn đã bị thu hồi</span>
+            `;
+        } else {
+            // Nút 3 chấm (Chỉ hiện nút Thu hồi nếu là tin của mình)
+            var actionMenu = `
+                <div class="dropdown d-inline-block float-end">
+                    <i class="bx bx-dots-vertical-rounded msg-actions" data-bs-toggle="dropdown" aria-expanded="false"></i>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="javascript:void(0);" onclick="copyMsg(this)">Sao chép</a></li>
+                        ${isMyMessage ? `<li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-danger" href="javascript:void(0);" onclick="recallMsg(${message.id})">Thu hồi</a></li>` : ''}
+                    </ul>
+                </div>
+            `;
+
+            messageElement.innerHTML = `
+                ${actionMenu}
+                <span class="message-sender">${isMyMessage ? 'Tôi' : message.sender.fullName}</span>
+                <span class="message-content-text">${message.content}</span>
+            `;
+        }
+
+        chatArea.appendChild(messageElement);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    // SAO CHÉP VÀ THU HỒI
+    function copyMsg(element) {
+        var text = element.closest('.message-box').querySelector('.message-content-text').innerText;
+        navigator.clipboard.writeText(text).then(() => alert("Đã sao chép: " + text));
+    }
+
+    function recallMsg(msgId) {
+        if(confirm("Bạn có chắc muốn thu hồi tin nhắn này?")) {
+            fetch('/api/chat/recall/' + msgId, { method: 'DELETE' })
+            .then(() => {
+                loadChatHistory(); // Cập nhật lại màn hình thành chữ "Đã bị thu hồi"
+            });
+        }
+    }
+
+    function loadChatHistory() {
+        fetch('/api/chat/history/' + currentRoomId)
+            .then(res => res.json())
+            .then(messages => {
+                var chatArea = document.getElementById('chatArea');
+                chatArea.innerHTML = '';
+                messages.forEach(msg => { showIncomingMessage(msg); });
+            });
+    }
+
+    // HÀM TẠO NHÓM ĐÃ ĐƯỢC VIẾT ĐẦY ĐỦ TRỞ LẠI
+    function submitCreateGroup() {
+        var groupName = document.getElementById('groupNameInput').value.trim();
+        if(!groupName) {
+            alert("Vui lòng nhập tên nhóm!"); return;
+        }
+
+        var memberIds = [parseInt(currentUserId)];
+        var checkboxes = document.querySelectorAll('.group-member-checkbox:checked');
+        checkboxes.forEach(function(cb) { memberIds.push(parseInt(cb.value)); });
+
+        if(memberIds.length < 2) {
+            alert("Nhóm phải có ít nhất 2 thành viên!"); return;
+        }
+
+        fetch('/api/chat/create-group', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: groupName, memberIds: memberIds })
+        })
+        .then(res => res.text())
+        .then(roomId => {
+            var myModalEl = document.getElementById('createGroupModal');
+            var modal = bootstrap.Modal.getInstance(myModalEl);
+            if (modal) modal.hide();
+
+            document.getElementById('groupNameInput').value = '';
+            checkboxes.forEach(cb => cb.checked = false);
+
+            openRoom(roomId, groupName, true);
+        });
+    }
+
+    window.onload = function() {
+        connect();
+        loadChatHistory();
+    };
+</script>
+</body>
+</html>

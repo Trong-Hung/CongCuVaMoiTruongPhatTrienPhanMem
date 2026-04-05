@@ -26,4 +26,11 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "dept_id")
     private Department department;
+
+    @lombok.EqualsAndHashCode.Exclude
+    @lombok.ToString.Exclude
+    @ManyToMany(mappedBy = "members", fetch = FetchType.LAZY)
+    private java.util.Set<ChatRoom> chatRooms = new java.util.HashSet<>();
+
+
 }

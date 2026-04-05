@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi" class="light-style layout-menu-fixed" dir="ltr" data-theme="theme-default" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Thêm Nhân sự - HUDA.VN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/fonts/boxicons.css}" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/css/core.css}" class="template-customizer-core-css" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/css/theme-default.css}" class="template-customizer-theme-css" />
+    <link rel="stylesheet" th:href="@{/assets/css/demo.css}" />
+    <script th:src="@{/assets/js/config.js}"></script>
+</head>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+            <div class="app-brand demo">
+                <a th:href="@{/tasks/board}" class="app-brand-link">
+                    <span class="app-brand-text demo menu-text fw-bolder ms-2 text-uppercase" style="font-size: 1.2rem;">HUTECH WORKFLOW</span>
+                </a>
+            </div>
+            <div class="menu-inner-shadow"></div>
+            <ul class="menu-inner py-1 mt-3">
+                <li class="menu-item"><a th:href="@{/tasks/board}" class="menu-link"><i class="menu-icon tf-icons bx bx-kanban"></i><div data-i18n="Analytics">Bảng Công Việc</div></a></li>
+                <li class="menu-item"><a th:href="@{/tasks/create}" class="menu-link"><i class="menu-icon tf-icons bx bx-plus-circle"></i><div data-i18n="Layouts">Tạo công việc mới</div></a></li>
+                <li class="menu-header small text-uppercase"><span class="menu-header-text">QUẢN TRỊ</span></li>
+                <li class="menu-item active" sec:authorize="hasAuthority('ADMIN')"><a th:href="@{/admin/users}" class="menu-link"><i class="menu-icon tf-icons bx bx-group"></i><div data-i18n="Account Settings">Quản lý Nhân sự</div></a></li>
+            </ul>
+        </aside>
+
+        <div class="layout-page">
+            <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+                <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                    <div class="navbar-nav align-items-center">
+                        <div class="nav-item d-flex align-items-center fw-bold text-primary">
+                            <i class='bx bx-buildings fs-4 me-2'></i> <span>Hệ Thống Quản Trị</span> <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">ADMIN</span>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-wrapper">
+                <div class="container-xxl flex-grow-1 container-p-y">
+                    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Quản trị / <a th:href="@{/admin/users}" class="text-muted">Nhân sự</a> /</span> Thêm mới</h4>
+
+                    <div class="row justify-content-center">
+                        <div class="col-md-8">
+                            <div class="card mb-4 shadow-sm border-0">
+                                <h5 class="card-header border-bottom">Tạo tài khoản nhân viên</h5>
+                                <div class="card-body mt-4">
+                                    <form th:action="@{/admin/users/save}" method="post" th:object="${employee}">
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Email đăng nhập <span class="text-danger">*</span></label>
+                                            <input type="email" class="form-control" th:field="*{username}" required placeholder="VD: nhanvien@congty.com" />
+                                            <div class="form-text text-primary"><i class="bx bx-info-circle"></i> Mật khẩu mặc định sẽ là <strong>123456</strong> (Nhân viên có thể tự đổi sau).</div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Họ và tên <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" th:field="*{fullName}" required placeholder="Nhập tên đầy đủ..." />
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-bold">Chức vụ / Vị trí</label>
+                                                <div class="input-group input-group-merge">
+                                                    <span class="input-group-text"><i class="bx bx-briefcase"></i></span>
+                                                    <input type="text" class="form-control" th:field="*{position}" placeholder="VD: Developer, Tester, HR..." />
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6 mb-4">
+                                                <label class="form-label fw-bold">Quyền hạn hệ thống</label>
+                                                <div class="input-group input-group-merge">
+                                                    <span class="input-group-text"><i class="bx bx-check-shield"></i></span>
+                                                    <select class="form-select fw-semibold" th:field="*{role}">
+                                                        <option value="USER">Nhân viên bình thường (USER)</option>
+                                                        <option value="ADMIN">Quản trị viên (ADMIN)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-end gap-3 mt-3">
+                                            <a th:href="@{/admin/users}" class="btn btn-outline-secondary px-4">Hủy</a>
+                                            <button type="submit" class="btn btn-primary px-4"><i class="bx bx-user-plus me-1"></i> Tạo tài khoản</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/assets/vendor/libs/jquery/jquery.js}"></script>
+<script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
+</body>
+</html>
